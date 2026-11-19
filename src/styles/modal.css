@@ -1,0 +1,196 @@
+/* Native <dialog> modals (dialog guide): top layer, Esc handling and focus
+   come from the platform; animations via @starting-style + allow-discrete. */
+
+dialog.app-modal {
+  width: min(92vw, 520px);
+  max-width: 100%;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--modal-bg);
+  color: var(--text-normal);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+}
+
+dialog.app-modal.lg {
+  width: min(94vw, 760px);
+}
+
+dialog.app-modal::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  dialog.app-modal {
+    transition:
+      opacity 180ms ease,
+      scale 180ms ease;
+  }
+
+  dialog.app-modal::backdrop {
+    transition: opacity 180ms ease;
+  }
+
+  @starting-style {
+    dialog.app-modal {
+      opacity: 0;
+      scale: 0.96;
+    }
+
+    dialog.app-modal::backdrop {
+      opacity: 0;
+    }
+  }
+}
+
+.app-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.app-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+}
+
+.app-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 0 20px 18px;
+}
+
+.close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+}
+
+.close-btn:hover {
+  background: var(--hover-bg);
+  color: var(--text-hover);
+}
+
+/* code blocks inside modals */
+.code-block {
+  position: relative;
+  max-height: 400px;
+  overflow: auto;
+  padding: 12px;
+  background: var(--canvas-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  white-space: pre;
+}
+
+.code-block .tok-key {
+  color: #7dcfff;
+}
+.code-block .tok-string {
+  color: #9ece6a;
+}
+.code-block .tok-number {
+  color: #e8c479;
+}
+.code-block .tok-bool {
+  color: #f85c50;
+}
+.code-block .tok-kw {
+  color: #bb9af7;
+}
+.code-block .tok-type {
+  color: #2ac3de;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  color: var(--text-muted);
+  background: var(--hover-bg);
+}
+
+.copy-btn:hover {
+  color: var(--text-hover);
+}
+
+/* Segmented control — native radio group (brand-consistent-forms guide) */
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background: var(--hover-bg);
+  border-radius: 8px;
+  border: none;
+}
+
+.segmented.vertical {
+  flex-direction: column;
+  width: 100%;
+}
+
+.segmented label {
+  position: relative;
+  flex: 1;
+  display: flex;
+}
+
+.segmented input {
+  position: absolute;
+  appearance: none;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 6px;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease,
+    box-shadow 120ms ease;
+  pointer-events: none;
+}
+
+.segmented input:checked + span {
+  background: var(--modal-bg);
+  color: var(--text-normal);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.segmented.vertical span {
+  justify-content: flex-start;
+}

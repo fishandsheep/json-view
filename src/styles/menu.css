@@ -1,0 +1,127 @@
+/* ============================================================================
+   Menus — native Popover API + focusgroup + anchor positioning
+   (app-menus / menu / toolbar guides from modern-web-guidance).
+   Fallbacks: JS positioning without anchor positioning; JS arrow-key
+   navigation without focusgroup; click handlers without invoker commands.
+   ========================================================================== */
+
+.menubar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 14px;
+  color: var(--text-muted);
+  padding: 6px 8px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+.menu-trigger:hover,
+.menu-trigger[aria-expanded="true"] {
+  background: var(--hover-bg);
+  color: var(--text-hover);
+}
+
+.menu-popover {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  min-width: 200px;
+  padding: 6px;
+  background: var(--modal-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: var(--shadow-menu);
+  color: var(--text-normal);
+  font-size: 13px;
+}
+
+@supports (position-area: block-end) {
+  .menu-popover.anchored {
+    position-area: block-end span-inline-start;
+    margin-top: 6px;
+    position-try: flip-block flip-inline;
+  }
+}
+
+.menu-popover hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 5px 4px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border-radius: var(--radius);
+  color: var(--text-normal);
+  text-align: left;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.menu-item:hover,
+.menu-item:focus-visible {
+  background: var(--hover-bg);
+  outline: none;
+}
+
+.menu-item[aria-checked="true"]::after {
+  content: "✓";
+  margin-left: auto;
+  padding-left: 12px;
+  color: var(--text-muted);
+}
+
+.menu-item[aria-disabled="true"] {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.menu-item .item-icon {
+  display: inline-flex;
+  width: 18px;
+  color: var(--text-muted);
+}
+
+/* entering animation (animate-to-from-top-layer guide) */
+@media (prefers-reduced-motion: no-preference) {
+  .menu-popover {
+    transition:
+      opacity 130ms ease,
+      scale 130ms ease,
+      translate 130ms ease;
+    opacity: 0;
+    scale: 0.97;
+    translate: 0 -3px;
+  }
+
+  .menu-popover:popover-open {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+
+  /* Instant switching between open menubar menus, as native menubars do. */
+  .menubar:has(> .menu-trigger[aria-expanded="true"]) ~ .menu-popover,
+  .menubar:has(> [popover]:popover-open) > [popover] {
+    transition: none;
+  }
+
+  @starting-style {
+    .menu-popover:popover-open {
+      opacity: 0;
+      scale: 0.97;
+      translate: 0 -3px;
+    }
+  }
+}

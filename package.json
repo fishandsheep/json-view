@@ -1,0 +1,45 @@
+{
+  "name": "json-view",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "JSON Crack editor clone built with modern web platform practices",
+  "license": "Apache-2.0",
+  "scripts": {
+    "dev": "npm run copy:wasm && vite",
+    "build": "npm run copy:wasm && tsc -b && vite build",
+    "copy:wasm": "mkdir -p public && cp node_modules/jq-web/jq.wasm public/jq.wasm",
+    "preview": "vite preview",
+    "lint": "tsc -b --noEmit"
+  },
+  "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "allotment": "^1.20.5",
+    "fast-xml-parser": "^5.2.5",
+    "gofmt.js": "^0.0.2",
+    "html-to-image": "^1.11.13",
+    "jq-web": "^0.6.2",
+    "js-yaml": "^4.1.0",
+    "json_typegen_wasm": "^0.7.0",
+    "json-2-csv": "^5.6.0",
+    "jsonc-parser": "^3.3.1",
+    "jsoncrack-react": "^1.0.5",
+    "jsonpath-plus": "^10.4.0",
+    "monaco-editor": "^0.55.1",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-icons": "^5.5.0",
+    "react-json-tree": "^0.20.0",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^7.2.0",
+    "vite-plugin-top-level-await": "^1.6.0",
+    "vite-plugin-wasm": "^3.6.0"
+  }
+}

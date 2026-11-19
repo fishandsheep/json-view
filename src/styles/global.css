@@ -1,0 +1,403 @@
+/* ============================================================================
+   Design tokens — modern dark mode per GoogleChrome/modern-web-guidance
+   (`dark-mode`, `dark-mode-toggle`, `color` guides):
+   - One set of dual-theme tokens via CSS light-dark(), resolved by the
+     `color-scheme` value that the [data-theme] attribute switches.
+   - Persisted pre-paint by an inline script in index.html (no FOUC).
+   - Hex values mirror the original app for pixel fidelity.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* surfaces */
+  --toolbar-bg: light-dark(#ececec, #262626);
+  --panel-bg: light-dark(#f2f3f5, #2f3136);
+  --canvas-bg: light-dark(#f7f7f7, #141414);
+  --grid-line-primary: light-dark(#ebe8e8, #1c1b1b);
+  --grid-line-secondary: light-dark(#f2eeee, #191919);
+  --modal-bg: light-dark(#ffffff, #36393e);
+  --input-bg: light-dark(#ffffff, #23272a);
+
+  /* lines */
+  --border: light-dark(rgba(106, 116, 128, 0.24), rgba(79, 84, 92, 0.48));
+  --border-strong: light-dark(#cccccc, #4d4d4d);
+
+  /* text */
+  --text-muted: light-dark(#4f5660, #b9bbbe);
+  --text-hover: light-dark(#2e3338, #dcddde);
+  --text-normal: light-dark(#2e3338, #dcddde);
+  --text-faint: light-dark(rgba(15, 23, 42, 0.55), rgba(255, 255, 255, 0.55));
+  --text-danger: light-dark(#dc2626, #f87171);
+  --text-success: light-dark(#008736, #00dc7d);
+
+  /* accents */
+  --accent: light-dark(#0260e8, #0964ff);
+  --danger: light-dark(#dc2626, #ed4245);
+
+  /* interactive */
+  --hover-bg: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+  --active-bg: light-dark(rgba(0, 0, 0, 0.09), rgba(255, 255, 255, 0.09));
+
+  /* glass surface (floating graph toolbar) */
+  --glass-bg: light-dark(rgba(255, 255, 255, 0.72), rgba(28, 28, 30, 0.72));
+  --glass-border: light-dark(rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.08));
+  --glass-shadow:
+    light-dark(
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06)
+    ),
+    0 1px 2px light-dark(rgba(15, 23, 42, 0.04), rgba(0, 0, 0, 0.25)),
+    0 8px 24px -4px light-dark(rgba(15, 23, 42, 0.12), rgba(0, 0, 0, 0.45));
+
+  --shadow-menu: 0 6px 16px rgba(0, 0, 0, 0.24);
+  --radius: 6px;
+  --radius-lg: 12px;
+  --toolbar-height: 45px;
+  --bottombar-height: 35px;
+  --font-ui: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+}
+
+/* Fallback for engines without light-dark() (Baseline 2024-05): resolve the
+   same tokens through [data-theme] selectors instead. */
+@supports not (color: light-dark(#fff, #000)) {
+  :root {
+    --toolbar-bg: #262626;
+    --panel-bg: #2f3136;
+    --canvas-bg: #141414;
+    --grid-line-primary: #1c1b1b;
+    --grid-line-secondary: #191919;
+    --modal-bg: #36393e;
+    --input-bg: #23272a;
+    --border: rgba(79, 84, 92, 0.48);
+    --border-strong: #4d4d4d;
+    --text-muted: #b9bbbe;
+    --text-hover: #dcddde;
+    --text-normal: #dcddde;
+    --text-faint: rgba(255, 255, 255, 0.55);
+    --text-danger: #f87171;
+    --text-success: #00dc7d;
+    --accent: #0964ff;
+    --danger: #ed4245;
+    --hover-bg: rgba(255, 255, 255, 0.05);
+    --active-bg: rgba(255, 255, 255, 0.09);
+    --glass-bg: rgba(28, 28, 30, 0.72);
+    --glass-border: rgba(255, 255, 255, 0.08);
+  }
+
+  :root[data-theme="light"] {
+    --toolbar-bg: #ececec;
+    --panel-bg: #f2f3f5;
+    --canvas-bg: #f7f7f7;
+    --grid-line-primary: #ebe8e8;
+    --grid-line-secondary: #f2eeee;
+    --modal-bg: #ffffff;
+    --input-bg: #ffffff;
+    --border: rgba(106, 116, 128, 0.24);
+    --border-strong: #cccccc;
+    --text-muted: #4f5660;
+    --text-hover: #2e3338;
+    --text-normal: #2e3338;
+    --text-faint: rgba(15, 23, 42, 0.55);
+    --text-danger: #dc2626;
+    --text-success: #008736;
+    --accent: #0260e8;
+    --danger: #dc2626;
+    --hover-bg: rgba(0, 0, 0, 0.05);
+    --active-bg: rgba(0, 0, 0, 0.09);
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-border: rgba(0, 0, 0, 0.06);
+  }
+}
+
+/* ============================================================================
+   Base
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  color: var(--text-normal);
+  background: var(--panel-bg);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* App shell: 100vh fallback first, then 100dvh where supported. */
+.app-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+}
+
+@supports (height: 100dvh) {
+  .app-root {
+    height: 100dvh;
+  }
+}
+
+/* Crash fallback so a render error never yields a blank page. */
+.error-boundary {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-muted);
+  font-family: var(--font-ui);
+}
+
+.error-boundary pre {
+  max-width: 90vw;
+  max-height: 50vh;
+  overflow: auto;
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 12px;
+  text-align: left;
+  background: var(--canvas-bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  white-space: pre-wrap;
+}
+
+svg {
+  vertical-align: text-top;
+}
+
+a {
+  color: unset;
+  text-decoration: none;
+}
+
+button {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: fit-content;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+}
+
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Themed scrollbars (browser-ui-theming guide) */
+* {
+  scrollbar-color: light-dark(rgba(0, 0, 0, 0.3), rgba(255, 255, 255, 0.16)) transparent;
+}
+
+/* ============================================================================
+   Tooltip — pure CSS, hover/focus triggered (interest-triggered-tooltips)
+   ========================================================================== */
+
+[data-tip] {
+  position: relative;
+}
+
+[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  translate: -50% 0;
+  z-index: 100;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: #1c1c1e;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.3;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.96;
+  transition:
+    opacity 120ms ease 60ms,
+    scale 120ms ease 60ms;
+}
+
+[data-tip]:hover::after,
+[data-tip]:focus-visible::after {
+  opacity: 1;
+  scale: 1;
+  transition-delay: 500ms;
+}
+
+[data-tip-pos="top"]::after {
+  top: auto;
+  bottom: calc(100% + 7px);
+}
+
+/* ============================================================================
+   Generic UI bits
+   ========================================================================== */
+
+.toolbar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: fit-content;
+  height: 26px;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  background: transparent;
+  border-radius: var(--radius);
+  white-space: nowrap;
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.toolbar-btn:hover:not(:disabled) {
+  background-color: var(--hover-bg);
+  color: var(--text-hover);
+}
+
+.toolbar-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  transition:
+    background-color 120ms ease,
+    color 120ms ease;
+}
+
+.icon-btn:hover:not(:disabled) {
+  background-color: var(--hover-bg);
+  color: var(--text-hover);
+}
+
+.text-input {
+  width: 100%;
+  height: 34px;
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--text-normal);
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: border-color 120ms ease;
+}
+
+.text-input::placeholder {
+  color: var(--text-faint);
+}
+
+.text-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #fff;
+  background: var(--accent);
+  border-radius: var(--radius);
+  transition:
+    filter 120ms ease,
+    opacity 120ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.btn.secondary {
+  color: var(--text-normal);
+  background: var(--hover-bg);
+}
+
+.btn.success {
+  background: #2f9e44;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.dimmed-text {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.link {
+  color: var(--accent);
+}
+
+.link:hover {
+  text-decoration: underline;
+}
