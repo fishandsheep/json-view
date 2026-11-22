@@ -1,7 +1,7 @@
 import React from "react";
 import "../styles/menu.css";
 
-export interface MenuItemSpec {
+interface MenuItemSpec {
   kind?: "item";
   label?: string;
   icon?: React.ReactNode;
@@ -10,11 +10,11 @@ export interface MenuItemSpec {
   disabled?: boolean;
 }
 
-export interface MenuDivider {
+interface MenuDivider {
   kind: "divider";
 }
 
-export type MenuEntry = MenuItemSpec | MenuDivider;
+type MenuEntry = MenuItemSpec | MenuDivider;
 
 export interface MenuSpec {
   id: string;
@@ -167,10 +167,6 @@ export const Menubar: React.FC<{ menus: MenuSpec[]; label: string }> = ({ menus,
   // --- keyboard model -----------------------------------------------------
   const onBarKeyDown = (e: React.KeyboardEvent) => {
     const trigger = findTrigger(e.target as HTMLElement);
-    const openMenu = openId
-      ? rootRef.current?.querySelector<HTMLElement>(`#${openId}-menu`)
-      : null;
-    const inOpenMenu = !!(openMenu && openMenu.contains(e.target as Node));
 
     if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
       e.preventDefault();
@@ -275,7 +271,7 @@ export const Menubar: React.FC<{ menus: MenuSpec[]; label: string }> = ({ menus,
             data-menubar-trigger
             type="button"
             role="menuitem"
-            aria-haspopup="menu"
+            aria-haspopup={menu.content ? "dialog" : "menu"}
             aria-expanded="false"
             tabIndex={i === 0 ? 0 : -1}
             {...(supportsInvoker()
@@ -316,7 +312,11 @@ export const Menubar: React.FC<{ menus: MenuSpec[]; label: string }> = ({ menus,
                 : undefined
             }
           >
-            <div {...{ focusgroup: "menu nomemory" }} aria-labelledby={`${menu.id}-trigger`}>
+            <div
+              role={menu.content ? "dialog" : "menu"}
+              {...{ focusgroup: "menu nomemory" }}
+              aria-labelledby={`${menu.id}-trigger`}
+            >
               {menu.content ??
                 menu.items?.map((entry, idx) =>
                   entry.kind === "divider" ? (
@@ -326,7 +326,10 @@ export const Menubar: React.FC<{ menus: MenuSpec[]; label: string }> = ({ menus,
                       key={entry.label}
                       type="button"
                       className="menu-item"
-                      aria-checked={entry.checked || undefined}
+                      role={entry.checked !== undefined ? "menuitemradio" : "menuitem"}
+                      aria-checked={
+                        entry.checked !== undefined ? !!entry.checked : undefined
+                      }
                       aria-disabled={entry.disabled || undefined}
                       onClick={() => {
                         entry.onClick?.();
@@ -418,6 +421,7 @@ export const MenuButton: React.FC<{
         }
       >
         <div
+          role="menu"
           {...{ focusgroup: "menu nomemory" }}
           aria-labelledby={`${id}-trigger`}
           onClick={e => {

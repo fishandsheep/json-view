@@ -9,9 +9,9 @@ import { SegmentedControl, toast } from "../components/Modal";
 import useConfig from "../stores/config";
 import useFile from "../stores/file";
 import useModal from "../stores/modal";
-import { ViewMode } from "../enums";
+import { FileFormat, ViewMode } from "../enums";
 import { downloadTextFile } from "../lib/helpers";
-import { sessionStore } from "../lib/safeStorage";
+import { useViewMode } from "../hooks/useViewMode";
 
 const BrandMark: React.FC = () => (
   <a
@@ -59,32 +59,17 @@ export const Toolbar: React.FC = () => {
   const getFormat = useFile(state => state.getFormat);
   const darkmodeEnabled = useConfig(state => state.darkmodeEnabled);
   const toggleDarkMode = useConfig(state => state.toggleDarkMode);
-  const [viewMode, setViewMode] = React.useState(ViewMode.Graph);
-
-  // Session-scoped view mode (mirrors original useSessionStorage behavior).
-  // `viewmodechange` is a same-tab broadcast; `storage` covers other tabs.
-  React.useEffect(() => {
-    const sync = () => {
-      const stored = sessionStore.get("viewMode");
-      if (stored === ViewMode.Tree || stored === ViewMode.Graph) setViewMode(stored);
-    };
-    sync();
-    window.addEventListener("viewmodechange", sync);
-    window.addEventListener("storage", sync);
-    return () => {
-      window.removeEventListener("viewmodechange", sync);
-      window.removeEventListener("storage", sync);
-    };
-  }, []);
-
-  const changeViewMode = (value: ViewMode) => {
-    setViewMode(value);
-    sessionStore.set("viewMode", value);
-    window.dispatchEvent(new CustomEvent("viewmodechange"));
-  };
+  const { viewMode, changeViewMode } = useViewMode();
 
   const handleSave = () => {
-    downloadTextFile(getContents(), `jsoncrack.${getFormat()}`);
+    const format = getFormat();
+    const contents = getContents();
+    // Excel needs the BOM to detect UTF-8; keep it out of the editor buffer.
+    downloadTextFile(
+      format === FileFormat.CSV ? `\uFEFF${contents}` : contents,
+      `jsoncrack.${format}`
+    );
+    useFile.getState().markExported();
   };
 
   const menus: MenuSpec[] = [

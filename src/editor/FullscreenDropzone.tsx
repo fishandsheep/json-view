@@ -3,6 +3,7 @@ import { VscFiles } from "react-icons/vsc";
 import { toast } from "../components/Modal";
 import useFile from "../stores/file";
 import { FileFormat } from "../enums";
+import { MAX_IMPORT_SIZE } from "../lib/helpers";
 
 const ACCEPTED: Record<string, FileFormat> = {
   json: FileFormat.JSON,
@@ -11,8 +12,6 @@ const ACCEPTED: Record<string, FileFormat> = {
   xml: FileFormat.XML,
   csv: FileFormat.CSV,
 };
-
-const MAX_SIZE = 300 * 1024; // 300 KB, mirrors the original limit.
 
 /**
  * Whole-window file drop target implemented with the native Drag and Drop API
@@ -85,18 +84,23 @@ export const FullscreenDropzone: React.FC = () => {
   );
 };
 
-export async function importFile(file: File, setContents: ReturnType<typeof useFile.getState>["setContents"]) {
+export async function importFile(
+  file: File,
+  setContents: ReturnType<typeof useFile.getState>["setContents"]
+): Promise<boolean> {
   try {
-    if (file.size > MAX_SIZE) {
-      toast.error(`File too large (max 300 KB): ${file.name}`);
-      return;
+    if (file.size > MAX_IMPORT_SIZE) {
+      toast.error(`File too large (max ${MAX_IMPORT_SIZE / 1024} KB): ${file.name}`);
+      return false;
     }
     const ext = file.name.split(".").pop()?.toLowerCase();
     const format = (ext && ACCEPTED[ext]) || FileFormat.JSON;
     const text = await file.text();
-    setContents({ contents: text, format, hasChanges: false });
+    await setContents({ contents: text, format, hasChanges: false });
+    return true;
   } catch (err) {
     toast.error("An error occurred while reading the file.");
     console.error(err);
+    return false;
   }
 }

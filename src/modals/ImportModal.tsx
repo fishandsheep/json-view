@@ -3,12 +3,13 @@ import { AiOutlineUpload } from "react-icons/ai";
 import { Modal, toast } from "../components/Modal";
 import useFile from "../stores/file";
 import { importFile } from "../editor/FullscreenDropzone";
+import { FileFormat } from "../enums";
+import { fetchJsonDocument } from "../lib/helpers";
 
 export const ImportModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
   const [url, setURL] = React.useState("");
   const [file, setFile] = React.useState<File | null>(null);
   const setContents = useFile(state => state.setContents);
-  const setFormat = useFile(state => state.setFormat);
   const inputRef = React.useRef<HTMLInputElement>(null);
 
   const reset = () => {
@@ -21,22 +22,23 @@ export const ImportModal: React.FC<{ open: boolean; onClose: () => void }> = ({ 
       setFile(null);
       const loadingToast = toast.loading("Loading...");
       try {
-        const res = await fetch(url);
-        const json = await res.json();
-        setContents({ contents: JSON.stringify(json, null, 2) });
+        const parsed = await fetchJsonDocument(url);
+        await setContents({
+          contents: JSON.stringify(parsed, null, 2),
+          format: FileFormat.JSON,
+        });
         reset();
         onClose();
-      } catch {
-        toast.error("Failed to fetch JSON!");
+      } catch (error) {
+        toast.error(
+          error instanceof Error ? error.message : "Failed to fetch JSON!"
+        );
       } finally {
         toast.dismiss(loadingToast);
       }
     } else if (file) {
-      const ext = file.name.substring(file.name.lastIndexOf(".") + 1);
-      await importFile(file, (data: Parameters<typeof setContents>[0]) => {
-        setFormat(data.format!);
-        setContents(data);
-      });
+      const ok = await importFile(file, setContents);
+      if (!ok) return;
       reset();
       onClose();
     }

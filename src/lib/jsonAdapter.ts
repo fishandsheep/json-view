@@ -1,5 +1,6 @@
 import type { ParseError } from "jsonc-parser";
 import { FileFormat } from "../enums";
+import { csvToJson, jsonToCsv } from "./csv";
 
 /** Parse any supported format into a plain JS value (dynamic-imported so the
  * parsers stay out of the initial bundle — performance guide). */
@@ -33,31 +34,24 @@ export const contentToJson = async (value: string, format = FileFormat.JSON): Pr
   }
 
   if (format === FileFormat.CSV) {
-    const { csv2json } = await import("json-2-csv");
-    return csv2json(value, {
-      trimFieldValues: true,
-      trimHeaderFields: true,
-      wrapBooleans: true,
-      excelBOM: true,
-    });
+    return csvToJson(value);
   }
 
   return {};
 };
 
-/** Serialize a JSON string into any supported format. */
-export const jsonToContent = async (json: string, format: FileFormat): Promise<string> => {
+/** Serialize a parsed JSON value into any supported format. */
+export const jsonToContent = async (json: unknown, format: FileFormat): Promise<string> => {
   try {
-    if (!json) return "";
+    if (json === undefined) return "";
 
     if (format === FileFormat.JSON) {
-      return JSON.stringify(JSON.parse(json), null, 2);
+      return JSON.stringify(json, null, 2);
     }
 
     if (format === FileFormat.YAML) {
       const { dump } = await import("js-yaml");
-      const { parse } = await import("jsonc-parser");
-      return dump(parse(json));
+      return dump(json);
     }
 
     if (format === FileFormat.XML) {
@@ -67,26 +61,16 @@ export const jsonToContent = async (json: string, format: FileFormat): Promise<s
         attributeNamePrefix: "$",
         ignoreAttributes: false,
       });
-      return builder.build(JSON.parse(json));
+      return builder.build(json);
     }
 
     if (format === FileFormat.CSV) {
-      const { json2csv } = await import("json-2-csv");
-      const parsedJson = JSON.parse(json);
-      const data = Array.isArray(parsedJson) ? parsedJson : [parsedJson];
-      return json2csv(data, {
-        expandArrayObjects: true,
-        expandNestedObjects: true,
-        excelBOM: true,
-        wrapBooleans: true,
-        trimFieldValues: true,
-        trimHeaderFields: true,
-      });
+      return jsonToCsv(json);
     }
 
-    return json;
+    return "";
   } catch (error) {
-    console.error(json, error);
-    return json;
+    console.error("Unable to serialize the document:", error);
+    throw error;
   }
 };

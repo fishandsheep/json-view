@@ -2,6 +2,7 @@ import React from "react";
 import { FiCopy, FiDownload } from "react-icons/fi";
 import { toBlob, toJpeg, toPng, toSvg } from "html-to-image";
 import { Modal, SegmentedControl, toast } from "../components/Modal";
+import useGraph from "../stores/graph";
 
 enum Extensions {
   SVG = "svg",
@@ -32,10 +33,6 @@ function downloadURI(uri: string, name: string) {
   link.href = uri;
   link.click();
 }
-
-const getExportElement = () =>
-  (document.querySelector(".jsoncrack-canvas") as HTMLElement | null) ??
-  (document.querySelector("svg[id*='ref']") as HTMLElement | null);
 
 /**
  * html-to-image never copies computed styles onto descendants of an <svg> subtree, and it
@@ -144,8 +141,8 @@ async function withResolvedNodeVars<T>(element: HTMLElement, capture: () => Prom
 
 /** Current canvas background as hex, so exports match the page theme by default.
  *  The canvas itself is transparent — walk up to the first opaque ancestor background. */
-const getCurrentCanvasColor = () => {
-  let el: HTMLElement | null = getExportElement();
+const getCanvasColor = (element: HTMLElement | null) => {
+  let el = element;
   while (el) {
     const m = getComputedStyle(el).backgroundColor.match(/rgba?\((\d+), (\d+), (\d+)(?:, ([\d.]+))?\)/);
     if (m && (m[4] === undefined || Number(m[4]) > 0)) {
@@ -158,20 +155,20 @@ const getCurrentCanvasColor = () => {
 };
 
 export const DownloadModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
+  const exportElement = useGraph(state => state.exportElement);
   const [extension, setExtension] = React.useState<Extensions>(Extensions.PNG);
   const [fileDetails, setFileDetails] = React.useState(() => ({
     filename: "jsoncrack.com",
-    backgroundColor: getCurrentCanvasColor(),
+    backgroundColor: getCanvasColor(useGraph.getState().exportElement),
     quality: 1,
   }));
 
   const clipboardImage = async () => {
     const loadingToast = toast.loading("Copying to clipboard...");
     try {
-      const imageElement = getExportElement();
-      if (!imageElement) return toast.error("Canvas not found.");
-      const blob = await withResolvedNodeVars(imageElement, () =>
-        toBlob(imageElement, {
+      if (!exportElement) return toast.error("Canvas not found.");
+      const blob = await withResolvedNodeVars(exportElement, () =>
+        toBlob(exportElement, {
           quality: fileDetails.quality,
           backgroundColor: fileDetails.backgroundColor,
           skipFonts: true,
@@ -197,10 +194,9 @@ export const DownloadModal: React.FC<{ open: boolean; onClose: () => void }> = (
   const exportAsImage = async () => {
     const loadingToast = toast.loading("Downloading...");
     try {
-      const imageElement = getExportElement();
-      if (!imageElement) return toast.error("Canvas not found.");
-      const dataURI = await withResolvedNodeVars(imageElement, () =>
-        getDownloadFormat(extension)(imageElement, {
+      if (!exportElement) return toast.error("Canvas not found.");
+      const dataURI = await withResolvedNodeVars(exportElement, () =>
+        getDownloadFormat(extension)(exportElement, {
           quality: fileDetails.quality,
           backgroundColor: fileDetails.backgroundColor,
           skipFonts: true,

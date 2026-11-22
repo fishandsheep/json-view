@@ -8,7 +8,7 @@ import "../styles/modal.css";
    Toaster — a tiny zustand-driven toast stack (replaces react-hot-toast).
    ========================================================================== */
 
-export interface ToastItem {
+interface ToastItem {
   id: number;
   message: string;
   type: "default" | "success" | "error" | "loading";
@@ -22,7 +22,7 @@ interface ToastStore {
 
 let nextId = 1;
 
-export const useToasts = create<ToastStore>()(set => ({
+const useToasts = create<ToastStore>()(set => ({
   toasts: [],
   push: (message, type = "default") => {
     const id = nextId++;

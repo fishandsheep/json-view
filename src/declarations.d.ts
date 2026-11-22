@@ -1,6 +1,10 @@
 /** Type declarations for untyped dependencies (jq-web, gofmt.js) and the
  * vendored json2go converter from the upstream project. */
 
+/** `edcore.main` (editor without bundled languages) has no .d.ts; its runtime
+ * surface is asserted through the `monaco-editor` types in monacoSetup.ts. */
+declare module "monaco-editor/esm/vs/editor/edcore.main.js";
+
 declare module "jq-web" {
   /** jq-web 0.6.2 module.exports is a promise resolving to {json, raw}. */
   const jq: Promise<{

@@ -20,7 +20,7 @@
 | 图渲染 | 自研 `jsoncrack-react` 包（reaflow + react-zoomable-ui + ELK layered 布局） | **已发布为公开 npm 包** |
 | 状态管理 | zustand ×5 个 store | useFile / useJson / useConfig / useModal / useGraph |
 | 通知 | react-hot-toast | — |
-| 解析器 | jsonc-parser（JSONC 容错解析）· js-yaml · fast-xml-parser · json-2-csv | 统一 `contentToJson` / `jsonToContent` 适配层 |
+| 解析器 | jsonc-parser（JSONC 容错解析）· js-yaml · fast-xml-parser · 自研 CSV（`csv.ts`，RFC 4180 + 路径投影） | 统一 `contentToJson` / `jsonToContent` 适配层 |
 | 工具链 | jq-web（WASM）· jsonpath-plus · json_typegen_wasm · html-to-image | 查询 / 代码生成 / 图片导出 |
 
 ### 1.2 页面结构（editor.tsx）
@@ -48,7 +48,7 @@
 ### 1.3 功能清单（按优先级）
 
 **P0 — 核心体验**
-- 双栏布局：Monaco 文本编辑器 ⇄ 图可视化，可拖拽分隔条，左侧可收起（全屏图模式，左缘悬停展开按钮）
+- 双栏布局：Monaco 文本编辑器 ⇄ 图可视化，可拖拽分隔条，左侧可收起（全屏图模式，退出按钮位于图悬浮工具栏）
 - 实时转换（Live Transform）：编辑 → 400ms debounce → 解析 → 图更新（可关闭，关闭后出现 "Click to Transform"）
 - Valid / Invalid 状态指示 + 错误信息 popover
 - 多格式：JSON / YAML / XML / CSV，切换格式自动转换内容
@@ -100,7 +100,7 @@
 
 ```
 Monaco onChange ─→ useFile.setContents()
-                  ├─ contentToJson(contents, format)   ← js-yaml / fast-xml-parser / json-2-csv
+                  ├─ contentToJson(contents, format)   ← js-yaml / fast-xml-parser / csv.ts
                   ├─ 错误 → useFile.error（BottomBar Invalid + popover）
                   └─ debouncedUpdateJson (400ms) → useJson.setJson()
                                                   └→ jsoncrack-react <JSONCrack json=…> 重布局

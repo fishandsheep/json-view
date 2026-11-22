@@ -21,15 +21,31 @@
     />
     <script>
       // Apply persisted theme before first paint to avoid a flash of wrong theme.
+      // The config store persists to `jsoncrack-config`; read that same entry so
+      // there is only one source of truth. `jsoncrack-theme` is a legacy key.
       // try/catch: storage access can throw in restricted embedding contexts.
       try {
-        var stored = localStorage.getItem("jsoncrack-theme");
+        var configured = null;
+        var raw = localStorage.getItem("jsoncrack-config");
+        if (raw) {
+          try {
+            var saved = JSON.parse(raw);
+            if (saved && saved.state && typeof saved.state.darkmodeEnabled === "boolean") {
+              configured = saved.state.darkmodeEnabled;
+            }
+          } catch (ignored) {}
+        }
+        var legacy = localStorage.getItem("jsoncrack-theme");
         var theme =
-          stored === "light" || stored === "dark"
-            ? stored
-            : matchMedia("(prefers-color-scheme: light)").matches
+          configured === true
+            ? "dark"
+            : configured === false
               ? "light"
-              : "dark";
+              : legacy === "light" || legacy === "dark"
+                ? legacy
+                : matchMedia("(prefers-color-scheme: light)").matches
+                  ? "light"
+                  : "dark";
         document.documentElement.dataset.theme = theme;
       } catch (e) {
         document.documentElement.dataset.theme = "dark";

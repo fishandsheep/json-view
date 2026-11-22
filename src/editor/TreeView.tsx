@@ -32,18 +32,8 @@ const Value: React.FC<{ valueAsString: unknown; value: unknown }> = ({
 };
 
 export const TreeView: React.FC = () => {
-  const json = useJson(state => state.json);
+  const data = useJson(state => state.parsed);
   const light = useSyncExternalStore(themeSubscriber, isLight);
-
-  // Parse once per document update — the pretty-printed string of a large
-  // document can exceed 1 MB.
-  const data = React.useMemo<unknown>(() => {
-    try {
-      return JSON.parse(json);
-    } catch {
-      return {};
-    }
-  }, [json]);
 
   return (
     <div style={{ height: "100%", overflow: "auto" }}>

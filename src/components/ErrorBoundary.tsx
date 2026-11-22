@@ -36,7 +36,9 @@ export class ErrorBoundary extends React.Component<
             >
               Reload
             </button>
-            <pre>{this.state.error.stack || this.state.error.message}</pre>
+            {import.meta.env.DEV && (
+              <pre>{this.state.error.stack || this.state.error.message}</pre>
+            )}
           </div>
         </div>
       );

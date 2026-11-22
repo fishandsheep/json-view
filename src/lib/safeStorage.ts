@@ -9,22 +9,31 @@
 
 const memory = new Map<string, string>();
 
-const tryStore = (kind: "local" | "session", op: "get" | "set", key: string, value?: string) => {
+const tryStore = (
+  kind: "local" | "session",
+  op: "get" | "set" | "remove",
+  key: string,
+  value?: string
+) => {
   try {
     const store = kind === "local" ? window.localStorage : window.sessionStorage;
     if (op === "get") return store?.getItem(key) ?? null;
-    store?.setItem(key, value!);
+    if (op === "set") store?.setItem(key, value!);
+    else store?.removeItem(key);
   } catch {
     /* storage unavailable or access denied — memory fallback below */
   }
   if (op === "get") return memory.get(key) ?? null;
-  memory.set(key, value!);
+  if (op === "set") memory.set(key, value!);
+  else memory.delete(key);
   return undefined;
 };
 
-export const localStore = {
-  get: (key: string) => tryStore("local", "get", key) as string | null,
-  set: (key: string, value: string) => void tryStore("local", "set", key, value),
+/** localStorage adapter for zustand's persist middleware (never throws). */
+export const safeStorage = {
+  getItem: (key: string) => tryStore("local", "get", key) as string | null,
+  setItem: (key: string, value: string) => void tryStore("local", "set", key, value),
+  removeItem: (key: string) => void tryStore("local", "remove", key),
 };
 
 export const sessionStore = {

@@ -4,6 +4,7 @@ import {
   LuCopyPlus,
   LuImageDown,
   LuMinus,
+  LuPanelLeftOpen,
   LuPlus,
   LuSearch,
   LuSettings2,
@@ -14,9 +15,9 @@ import { FaMoon, FaSun } from "react-icons/fa6";
 import { MenuButton } from "../components/Menus";
 import useConfig from "../stores/config";
 import useModal from "../stores/modal";
-import useGraph from "../stores/graph";
+import useGraph, { nextDirection } from "../stores/graph";
+import { isEditableTarget } from "../lib/helpers";
 import { SearchInput } from "./SearchInput";
-import type { LayoutDirection } from "jsoncrack-react";
 
 const glassStyle: React.CSSProperties = {
   borderRadius: 14,
@@ -25,13 +26,6 @@ const glassStyle: React.CSSProperties = {
   WebkitBackdropFilter: "blur(20px) saturate(180%)",
   border: "1px solid var(--glass-border)",
   boxShadow: "var(--glass-shadow)",
-};
-
-const getNextDirection = (direction: LayoutDirection): LayoutDirection => {
-  if (direction === "RIGHT") return "DOWN";
-  if (direction === "DOWN") return "LEFT";
-  if (direction === "LEFT") return "UP";
-  return "RIGHT";
 };
 
 export const GraphToolbar: React.FC = () => {
@@ -45,6 +39,8 @@ export const GraphToolbar: React.FC = () => {
   const expandAll = useGraph(state => state.expandAll);
   const collapseAll = useGraph(state => state.collapseAll);
   const setVisible = useModal(state => state.setVisible);
+  const fullscreen = useGraph(state => state.fullscreen);
+  const toggleFullscreen = useGraph(state => state.toggleFullscreen);
   const darkmodeEnabled = useConfig(state => state.darkmodeEnabled);
   const toggleDarkMode = useConfig(state => state.toggleDarkMode);
   const gesturesEnabled = useConfig(state => state.gesturesEnabled);
@@ -54,39 +50,21 @@ export const GraphToolbar: React.FC = () => {
 
   const [searchOpen, setSearchOpen] = React.useState(false);
 
-  const toggleDirection = () =>
-    setDirection(getNextDirection(direction || "RIGHT"));
+  const toggleDirection = () => setDirection(nextDirection(direction || "RIGHT"));
 
-  // Keyboard shortcuts (same set as the original app).
+  // ⌘F toggles the graph search. Other shortcuts live in `useShortcuts`
+  // (app level) so they also work in the tree view. Never steal ⌘F from a
+  // focused input/Monaco editor — it means "find" there.
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (mod && (e.key === "+" || e.key === "=")) {
-        e.preventDefault();
-        zoomIn();
-      } else if (mod && e.key === "-") {
-        e.preventDefault();
-        zoomOut();
-      } else if (e.shiftKey && e.key === "!") {
-        e.preventDefault();
-        focusFirstNode();
-      } else if (e.shiftKey && e.key === "@") {
-        e.preventDefault();
-        centerView();
-      } else if (mod && e.key.toLowerCase() === "f") {
-        e.preventDefault();
-        setSearchOpen(o => !o);
-      } else if (mod && e.key.toLowerCase() === "s") {
-        e.preventDefault();
-        setVisible("DownloadModal", true);
-      } else if (mod && e.shiftKey && e.key.toLowerCase() === "d") {
-        e.preventDefault();
-        toggleDirection();
-      }
+      if (!(e.metaKey || e.ctrlKey) || e.altKey || e.code !== "KeyF") return;
+      if (e.isComposing || isEditableTarget(e.target)) return;
+      e.preventDefault();
+      setSearchOpen(open => !open);
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [zoomIn, zoomOut, focusFirstNode, centerView, setVisible, toggleDirection]);
+  }, []);
 
   const itemStyle: React.CSSProperties = {
     display: "inline-flex",
@@ -145,6 +123,14 @@ export const GraphToolbar: React.FC = () => {
         </div>
       )}
       <div style={{ ...glassStyle, display: "flex", alignItems: "center", padding: 5, gap: 2 }}>
+        {fullscreen && (
+          <>
+            <Item label="Open editor" onClick={() => toggleFullscreen(false)}>
+              <LuPanelLeftOpen size={18} />
+            </Item>
+            <Divider />
+          </>
+        )}
         <Item label="Center first item (⇧1)" onClick={focusFirstNode}>
           <MdOutlineCenterFocusStrong size={18} />
         </Item>
@@ -188,6 +174,7 @@ export const GraphToolbar: React.FC = () => {
           <button
             type="button"
             className="menu-item"
+            role="menuitem"
             onClick={() => toggleDarkMode(!darkmodeEnabled)}
           >
             <span className="item-icon">
@@ -198,7 +185,8 @@ export const GraphToolbar: React.FC = () => {
           <button
             type="button"
             className="menu-item"
-            aria-checked={gesturesEnabled || undefined}
+            role="menuitemradio"
+            aria-checked={gesturesEnabled}
             onClick={() => toggleGestures(!gesturesEnabled)}
           >
             <span className="item-icon" />
@@ -207,7 +195,8 @@ export const GraphToolbar: React.FC = () => {
           <button
             type="button"
             className="menu-item"
-            aria-checked={rulersEnabled || undefined}
+            role="menuitemradio"
+            aria-checked={rulersEnabled}
             onClick={() => toggleRulers(!rulersEnabled)}
           >
             <span className="item-icon" />

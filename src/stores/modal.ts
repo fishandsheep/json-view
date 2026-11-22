@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export const modalNames = [
+const modalNames = [
   "ImportModal",
   "DownloadModal",
   "JQModal",
@@ -10,7 +10,7 @@ export const modalNames = [
   "NodeModal",
 ] as const;
 
-export type ModalName = (typeof modalNames)[number];
+type ModalName = (typeof modalNames)[number];
 
 interface ModalActions {
   setVisible: (name: ModalName, open: boolean) => void;

@@ -2,23 +2,30 @@ import React from "react";
 import { VscLinkExternal } from "react-icons/vsc";
 import { JSONPath } from "jsonpath-plus";
 import { Modal, toast } from "../components/Modal";
+import { QueryResult } from "../components/QueryResult";
 import useFile from "../stores/file";
 import useJson from "../stores/json";
 
 export const JPathModal: React.FC<{ open: boolean; onClose: () => void }> = ({ open, onClose }) => {
-  const getJson = useJson(state => state.getJson);
+  const getParsed = useJson(state => state.getParsed);
   const setContents = useFile(state => state.setContents);
   const [query, setQuery] = React.useState("");
+  const [result, setResult] = React.useState<{ value: unknown } | null>(null);
 
   const evaluateJsonPath = () => {
     try {
-      const json = getJson();
-      const result = JSONPath({ path: query, json: JSON.parse(json) });
-      setContents({ contents: JSON.stringify(result, null, 2) });
-      onClose();
+      const value = JSONPath({ path: query, json: getParsed() as object });
+      setResult({ value });
     } catch (error) {
       if (error instanceof Error) toast.error(error.message);
     }
+  };
+
+  const applyResult = async () => {
+    if (!result) return;
+    const text = JSON.stringify(result.value, null, 2) ?? "null";
+    await setContents({ contents: text });
+    onClose();
   };
 
   return (
@@ -42,15 +49,19 @@ export const JPathModal: React.FC<{ open: boolean; onClose: () => void }> = ({ o
         className="text-input"
         placeholder="Enter JSON Path..."
         value={query}
-        onChange={e => setQuery(e.currentTarget.value)}
+        onChange={e => {
+          setQuery(e.currentTarget.value);
+          setResult(null);
+        }}
         onKeyDown={e => e.key === "Enter" && query.length > 0 && evaluateJsonPath()}
         autoFocus={open}
       />
       <div style={{ display: "flex", justifyContent: "flex-end" }}>
         <button type="button" className="btn" onClick={evaluateJsonPath} disabled={!query.length}>
-          Run
+          Run query
         </button>
       </div>
+      {result && <QueryResult value={result.value} onApply={() => void applyResult()} />}
     </Modal>
   );
 };

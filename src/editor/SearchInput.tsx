@@ -36,7 +36,8 @@ export const SearchInput: React.FC<{ onClose?: () => void }> = ({ onClose }) => 
         onKeyDown={e => {
           if (e.key === "Enter") {
             e.preventDefault();
-            e.shiftKey ? prev() : next();
+            if (e.shiftKey) prev();
+            else next();
           } else if (e.key === "Escape") {
             handleClose();
           }

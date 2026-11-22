@@ -10,6 +10,8 @@ interface GraphStates {
   fullscreen: boolean;
   selectedNode: NodeData | null;
   collapsedCount: number;
+  /** Mounted graph canvas, used by the image exporter (set by GraphView). */
+  exportElement: HTMLElement | null;
 }
 
 interface GraphActions {
@@ -25,7 +27,15 @@ interface GraphActions {
   expandAll: () => void;
   collapseAll: () => void;
   setCollapsedCount: (count: number) => void;
+  setExportElement: (element: HTMLElement | null) => void;
 }
+
+export const nextDirection = (direction: LayoutDirection): LayoutDirection => {
+  if (direction === "RIGHT") return "DOWN";
+  if (direction === "DOWN") return "LEFT";
+  if (direction === "LEFT") return "UP";
+  return "RIGHT";
+};
 
 const useGraph = create<GraphStates & GraphActions>()((set, get) => ({
   viewPort: null,
@@ -34,10 +44,12 @@ const useGraph = create<GraphStates & GraphActions>()((set, get) => ({
   fullscreen: false,
   selectedNode: null,
   collapsedCount: 0,
+  exportElement: null,
   setSelectedNode: nodeData => set({ selectedNode: nodeData }),
   setDirection: (direction = "RIGHT") => {
+    // GraphView remounts on a direction change and jsoncrack-react's
+    // `centerOnLayout` re-centers after the ELK pass, so no timer is needed.
     set({ direction });
-    setTimeout(() => get().centerView(), 200);
   },
   focusFirstNode: () => get().jsonCrackRef?.current?.focusFirstNode(),
   zoomIn: () => get().jsonCrackRef?.current?.zoomIn(),
@@ -49,6 +61,7 @@ const useGraph = create<GraphStates & GraphActions>()((set, get) => ({
     if (get().collapsedCount === count) return;
     set({ collapsedCount: count });
   },
+  setExportElement: exportElement => set({ exportElement }),
   toggleFullscreen: fullscreen => set({ fullscreen }),
   setViewPort: viewPort => set({ viewPort }),
   setJsonCrackRef: jsonCrackRef => set({ jsonCrackRef }),

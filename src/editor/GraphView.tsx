@@ -50,17 +50,26 @@ export const GraphView: React.FC = () => {
   const direction = useGraph(state => state.direction);
   const setSelectedNode = useGraph(state => state.setSelectedNode);
   const setCollapsedCount = useGraph(state => state.setCollapsedCount);
+  const setExportElement = useGraph(state => state.setExportElement);
   const gesturesEnabled = useConfig(state => state.gesturesEnabled);
   const rulersEnabled = useConfig(state => state.rulersEnabled);
   const darkmodeEnabled = useConfig(state => state.darkmodeEnabled);
-  const json = useJson(state => state.json);
+  const parsed = useJson(state => state.parsed);
   const setVisible = useModal(state => state.setVisible);
   const jsonCrackRef = React.useRef<JSONCrackRef>(null);
+  const canvasRef = React.useRef<HTMLDivElement>(null);
   const [heavyGraph, setHeavyGraph] = React.useState(false);
 
   React.useEffect(() => {
     setJsonCrackRef(jsonCrackRef);
   }, [setJsonCrackRef]);
+
+  // The image exporter captures this element; publish it instead of letting
+  // DownloadModal query the DOM for library-specific class names.
+  React.useEffect(() => {
+    setExportElement(canvasRef.current);
+    return () => setExportElement(null);
+  }, [setExportElement]);
 
   const handleParse = React.useCallback(
     (graph: GraphData) => {
@@ -116,14 +125,21 @@ export const GraphView: React.FC = () => {
       <GraphToolbar />
       <style>{canvasCss}</style>
       <div
+        ref={canvasRef}
         style={{ width: "100%", height: "100%" }}
         onContextMenu={e => e.preventDefault()}
         onClick={() => document.activeElement instanceof HTMLElement && document.activeElement.blur()}
       >
         <JSONCrack
           ref={jsonCrackRef}
-          key={[direction, gesturesEnabled, rulersEnabled].join("-")}
-          json={json}
+          // jsoncrack-react can't update two props in place: reaflow's ELK
+          // layout only re-runs when nodes/edges change (so `direction` needs a
+          // remount), and react-zoomable-ui captures `trackpadZoom` when its
+          // viewport is created (so `gesturesEnabled` does too). `rulersEnabled`
+          // is a plain className input, so it must stay out of the key — keeping
+          // it in used to drop zoom and collapse state for a cosmetic toggle.
+          key={[direction, gesturesEnabled].join("-")}
+          json={parsed as object}
           theme={darkmodeEnabled ? "dark" : "light"}
           layoutDirection={direction}
           showControls={false}

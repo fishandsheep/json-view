@@ -10,15 +10,16 @@ export default defineConfig({
   optimizeDeps: {
     exclude: ["json_typegen_wasm"],
   },
+  // The parse worker dynamically imports the format parsers, which requires a
+  // code-splitting-capable (ES module) worker format.
+  worker: {
+    format: "es",
+  },
   build: {
     target: "es2022",
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          monaco: ["monaco-editor", "@monaco-editor/react"],
-          graph: ["jsoncrack-react"],
-        },
-      },
-    },
+    // No manualChunks: forcing jsoncrack-react into its own chunk made Rollup
+    // hoist the React runtime there, and the entry then statically imported
+    // that chunk — pulling the whole graph engine into first paint despite the
+    // React.lazy boundary. Natural splitting keeps all of it in lazy chunks.
   },
 });

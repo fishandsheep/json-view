@@ -3,6 +3,7 @@ import { LuChevronDown, LuPanelLeftClose } from "react-icons/lu";
 import { VscCheck, VscError, VscRunAll, VscSync, VscSyncIgnored } from "react-icons/vsc";
 import { IoMdCheckmark } from "react-icons/io";
 import { MenuButton } from "../components/Menus";
+import { toast } from "../components/Modal";
 import { formats, type FileFormat } from "../enums";
 import useConfig from "../stores/config";
 import useFile from "../stores/file";
@@ -19,6 +20,13 @@ export const BottomBar: React.FC = () => {
   const fullscreen = useGraph(state => state.fullscreen);
 
   const toggleEditor = () => toggleFullscreen(!fullscreen);
+
+  const changeFormat = async (format: FileFormat) => {
+    const ok = await setFormat(format);
+    if (!ok) {
+      toast.error(`Unable to convert the document to ${format.toUpperCase()}.`);
+    }
+  };
 
   return (
     <div
@@ -108,8 +116,9 @@ export const BottomBar: React.FC = () => {
               key={format.value}
               type="button"
               className="menu-item"
-              aria-checked={currentFormat === (format.value as FileFormat) || undefined}
-              onClick={() => setFormat(format.value)}
+              role="menuitemradio"
+              aria-checked={currentFormat === format.value}
+              onClick={() => changeFormat(format.value)}
             >
               {format.label}
               {currentFormat === format.value && <IoMdCheckmark style={{ marginLeft: "auto" }} />}

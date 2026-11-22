@@ -1,41 +1,14 @@
 import React from "react";
-import Editor, { loader, type OnMount } from "@monaco-editor/react";
-import * as monaco from "monaco-editor";
+import Editor, { type OnMount } from "@monaco-editor/react";
+import { monaco } from "./monacoSetup";
 import useConfig from "../stores/config";
 import useFile from "../stores/file";
 
-// Bundle Monaco locally as an ES module instead of fetching the AMD loader
-// from a CDN: no runtime dependency on unpkg, and no global `define` that
-// breaks UMD libraries like human-format (used by jsoncrack-react).
-import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
-import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
-import cssWorker from "monaco-editor/esm/vs/language/css/css.worker?worker";
-import htmlWorker from "monaco-editor/esm/vs/language/html/html.worker?worker";
-import tsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker";
-
-self.MonacoEnvironment = {
-  getWorker(_workerId: string, label: string) {
-    switch (label) {
-      case "json":
-        return new jsonWorker();
-      case "css":
-      case "scss":
-      case "less":
-        return new cssWorker();
-      case "html":
-      case "handlebars":
-      case "razor":
-        return new htmlWorker();
-      case "typescript":
-      case "javascript":
-        return new tsWorker();
-      default:
-        return new editorWorker();
-    }
-  },
-};
-
-loader.config({ monaco });
+/** Dedicated model path so the applied JSON Schema only validates this
+ * document — schema/tool editors use their own default models. */
+const DOCUMENT_PATH = "file:///jsoncrack-document.json";
+const DOCUMENT_FILE_NAME = "jsoncrack-document.json";
+const SCHEMA_URI = "https://jsoncrack.local/document.schema.json";
 
 const editorOptions = {
   tabSize: 2,
@@ -69,10 +42,37 @@ export const TextEditor: React.FC = () => {
     });
   }, []);
 
+  // Apply the schema produced by Tools → JSON Schema to the JSON language
+  // service, so failures show up as Monaco markers and in the bottom bar.
+  React.useEffect(() => {
+    // `languages.json` is flagged deprecated in the 0.55 typings, but the
+    // runtime diagnostics API still ships with the bundled JSON worker.
+    const jsonDefaults = (monaco.languages.json as unknown as {
+      jsonDefaults?: { setDiagnosticsOptions: (options: unknown) => void };
+    }).jsonDefaults;
+    if (!jsonDefaults) return;
+    jsonDefaults.setDiagnosticsOptions({
+      validate: true,
+      // The document parser (jsonc-parser) accepts both of these.
+      allowComments: true,
+      trailingCommas: "ignore",
+      schemas: jsonSchema
+        ? [
+            {
+              uri: SCHEMA_URI,
+              fileMatch: [DOCUMENT_FILE_NAME],
+              schema: jsonSchema,
+            },
+          ]
+        : [],
+    });
+  }, [jsonSchema]);
+
   return (
     <div style={{ display: "grid", height: "100%", gridTemplateRows: "minmax(0, 1fr)" }}>
       <Editor
         height="100%"
+        path={DOCUMENT_PATH}
         language={fileType}
         theme={darkmodeEnabled ? "vs-dark" : "light"}
         value={contents}
