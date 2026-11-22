@@ -15,7 +15,7 @@ import { useViewMode } from "../hooks/useViewMode";
 
 const BrandMark: React.FC = () => (
   <a
-    href="/"
+    href={import.meta.env.BASE_URL}
     aria-label="JSON Crack home"
     style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 8px" }}
   >

@@ -6,6 +6,12 @@
 
 设计与与原站的对照分析见 [ANALYSIS.md](./ANALYSIS.md)。
 
+## 在线版本
+
+GitHub Pages：<https://fishandsheep.github.io/json-view/>
+
+推送到 `main` 后，`.github/workflows/pages.yml` 会自动执行 lint、测试、构建并发布；Pull Request 只运行 `.github/workflows/ci.yml`。
+
 ## 运行
 
 ```bash
