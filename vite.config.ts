@@ -5,7 +5,17 @@ import wasm from "vite-plugin-wasm";
 // json_typegen_wasm ships raw ESM + WASM; keep it out of pre-bundling and let
 // vite-plugin-wasm handle it. jq-web must stay IN pre-bundling so esbuild can
 // convert its CommonJS export to ESM.
+// Project sites are served from https://<owner>.github.io/<repo>/; GitHub
+// Actions sets GITHUB_ACTIONS, so local dev keeps `/` while the Pages build
+// gets the repository base path. A `<owner>.github.io` repo stays at `/`.
+const repository = process.env.GITHUB_REPOSITORY?.split("/")[1];
+const base =
+  process.env.GITHUB_ACTIONS && repository && !repository.endsWith(".github.io")
+    ? `/${repository}/`
+    : "/";
+
 export default defineConfig({
+  base,
   plugins: [react(), wasm()],
   optimizeDeps: {
     exclude: ["json_typegen_wasm"],

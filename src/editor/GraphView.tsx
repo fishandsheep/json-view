@@ -112,7 +112,7 @@ export const GraphView: React.FC = () => {
       ? "none"
       : `drop-shadow(2px 2px 0 ${darkmodeEnabled ? "rgba(0,0,0,.6)" : "rgba(15,23,42,.25)"})`;
     return `
-      .jsoncrack-space { cursor: url("/cursor.svg"), auto; }
+      .jsoncrack-space { cursor: url("${import.meta.env.BASE_URL}cursor.svg"), auto; }
       .jsoncrack-space:active { cursor: grabbing; }
       .jsoncrack-space rect { rx: 5; ry: 5; stroke-width: 1; filter: ${shadow}; }
       .jsoncrack-space path { stroke-linecap: round; stroke-linejoin: round; }
